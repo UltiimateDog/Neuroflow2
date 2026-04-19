@@ -7,6 +7,8 @@ import FoundationModels
 struct LearningView: View {
     let plan: LearningPlan.PartiallyGenerated
     @State private var speech = SpeechManager()
+    
+    @Namespace private var namespace
 
     var body: some View {
         ScrollView {
@@ -15,18 +17,49 @@ struct LearningView: View {
                 HStack(alignment: .firstTextBaseline) {
                     if let topic = plan.topic {
                         Text(topic)
+                            .foregroundStyle(.accent)
                             .dyslexicStyle(size: 34, weight: .bold)
                     }
                     Spacer()
+                    
                     Button {
-                        speech.isSpeaking ? speech.stop() : speech.speak(plan.simpleOverview ?? "")
+                        withAnimation {
+                            speech.isSpeaking ? speech.stop() : speech.speak(plan.simpleOverview ?? "")
+                        }
                     } label: {
-                        Image(systemName: speech.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
-                            .font(.title2)
-                            .padding(12)
-                            .background(.indigo.opacity(0.1))
-                            .clipShape(Circle())
+                        ZStack {
+                            if speech.isSpeaking {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 40)
+                                    .bold()
+                                    .gradientForeground(
+                                        colors: [.second, .accent],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .symbolEffect(.variableColor)
+                                    .matchedGeometryEffect(id: "speaker", in: namespace)
+                                
+                            } else {
+                                Image(systemName: "speaker.wave.2.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 35)
+                                    .bold()
+                                    .gradientForeground(
+                                        colors: [.second, .accent],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                    .matchedGeometryEffect(id: "speaker", in: namespace)
+                            }
+                        }
+                        .frame(width: 35)
+                        .animation(.neuroSpring, value: speech.isSpeaking)
                     }
+                    .padding(.trailing, 5)
                 }
                 .padding(.horizontal)
 
@@ -39,58 +72,45 @@ struct LearningView: View {
                 if let steps = plan.steps {
                     VStack(alignment: .leading, spacing: 24) {
                         ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
-                            VStack(alignment: .leading, spacing: 15) {
-                                HStack {
-                                    Text("\(index + 1)")
-                                        .font(.system(.headline, design: .rounded))
-                                        .foregroundColor(.white)
-                                        .frame(width: 30, height: 30)
-                                        .background(.indigo)
-                                        .clipShape(Circle())
-                                    
-                                    Text(step.title ?? "")
-                                        .dyslexicStyle(size: 22, weight: .bold)
-                                }
-                                
-                                Text(step.explanation ?? "")
-                                    .dyslexicStyle()
-                                
-                                // Call to Action / Key Point
-                                HStack {
-                                    Image(systemName: "star.fill").foregroundColor(.orange)
-                                    Text(step.keyTakeaway ?? "").dyslexicStyle(size: 16, weight: .bold)
-                                }
-                                .padding()
-                                .background(.orange.opacity(0.1))
-                                .cornerRadius(12)
-                                
-                                Button("Listen to Step \(index + 1)") {
-                                    speech.speak(step.explanation ?? "")
-                                }
-                                .font(.system(.subheadline, design: .rounded).bold())
-                                .foregroundColor(.indigo)
-                            }
-                            .teacchCard()
+                            
+                            LearningStepBox(
+                                index: index + 1,
+                                title: step.title ?? "",
+                                explanation: step.explanation ?? "",
+                                takeaway: step.keyTakeaway ?? ""
+                            )
                             .transition(.neuroFluid)
+                            
                         }
                     }
                 }
                 
                 // 4. Flashcards (Visual Review)
                 if let flashcards = plan.flashcards {
-                    Text("Review Tools").dyslexicStyle(size: 24, weight: .bold).padding(.horizontal)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 20) {
-                            ForEach(flashcards) { card in
-                                FlashcardView(card: card)
+                    
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Review Tools")
+                            .foregroundStyle(.accent)
+                            .dyslexicStyle(size: 24, weight: .bold)
+                            .padding(.horizontal)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 20) {
+                                ForEach(flashcards) { card in
+                                    FlashcardView(card: card)
+                                }
                             }
+                            .padding()
                         }
-                        .padding(.horizontal)
+                        .scrollIndicators(.hidden)
+
                     }
-                }
+                }//: If
             }
             .padding(.vertical)
         }
+        .scrollIndicators(.hidden)
+        .background(Color.third.opacity(0.4).ignoresSafeArea())
         .animation(.neuroSpring, value: plan)
     }
 }
@@ -102,7 +122,7 @@ struct TEACCHProgressIndicator: View {
         HStack {
             ForEach(0..<count, id: \.self) { _ in
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(.indigo.opacity(0.3))
+                    .fill(.accent)
                     .frame(height: 8)
             }
         }
@@ -118,11 +138,11 @@ struct FlashcardView: View {
     var body: some View {
         ZStack {
             // Front of Card
-            CardFace(text: card.question ?? "Generating question...", isFaceUp: !isFlipped)
+            CardFace(text: card.question ?? "Generating question...", isFaceUp: true)
                 .opacity(isFlipped ? 0 : 1)
             
             // Back of Card
-            CardFace(text: card.answer ?? "Generating answer...", isFaceUp: isFlipped)
+            CardFace(text: card.answer ?? "Generating answer...", isFaceUp: false)
                 .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
                 .opacity(isFlipped ? 1 : 0)
         }
@@ -142,16 +162,15 @@ struct CardFace: View {
     
     var body: some View {
         Text(text)
-            .font(.headline)
-            .multilineTextAlignment(.center)
+            .foregroundStyle(.accent)
+            .dyslexicStyle(weight: isFaceUp ? .semibold : .bold)
             .padding()
             .frame(width: 260, height: 180)
-            .background(isFaceUp ? Color(.tertiarySystemBackground) : Color.indigo.opacity(0.1))
-            .cornerRadius(20)
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(isFaceUp ? Color.clear : Color.indigo, lineWidth: 2)
+            .background(
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(Color.white)
+                    .shadow(color: .second, radius: 1)
+                    .shadow(color: .second, radius: 2)
             )
-            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
     }
 }

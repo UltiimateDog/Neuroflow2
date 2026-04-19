@@ -8,15 +8,20 @@
 import AVFoundation
 
 @Observable
-final class SpeechManager {
+final class SpeechManager: NSObject, AVSpeechSynthesizerDelegate {
     private let synthesizer = AVSpeechSynthesizer()
     var isSpeaking = false
+
+    override init() {
+        super.init()
+        synthesizer.delegate = self
+    }
 
     func speak(_ text: String) {
         stop()
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "en-US")
-        utterance.rate = 0.5 // Slower, more deliberate rate
+        utterance.rate = 0.5
         utterance.pitchMultiplier = 1.0
         
         isSpeaking = true
@@ -25,6 +30,18 @@ final class SpeechManager {
 
     func stop() {
         synthesizer.stopSpeaking(at: .immediate)
+        isSpeaking = false
+    }
+
+    // MARK: - Delegate
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                           didFinish utterance: AVSpeechUtterance) {
+        isSpeaking = false
+    }
+
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer,
+                           didCancel utterance: AVSpeechUtterance) {
         isSpeaking = false
     }
 }

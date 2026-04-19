@@ -65,7 +65,6 @@ struct LearningPlanningView: View {
                 .fontDesign(.rounded)
                 .fontWeight(.bold)
                 .foregroundStyle(.accent)
-                .lineLimit(1)
                 .shimmer(isActive: true)
             
             Spacer()
@@ -75,7 +74,7 @@ struct LearningPlanningView: View {
 }
 
 #Preview {
-    let landmark: Landmark = .virtual(name: "Test")
+    let landmark: Landmark = .virtual(name: "Addition")
     
     LearningPlanningView(landmark: landmark, planner: LearningPlanner(subject: landmark.name))
 }

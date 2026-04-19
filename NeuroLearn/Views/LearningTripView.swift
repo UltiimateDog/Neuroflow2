@@ -24,7 +24,7 @@ struct LearningTripView: View {
                                 .tag(1)
                         }
                     }
-                    .tint(.indigo)
+                    .tint(.accent)
                     .transition(.opacity)
                 } else {
                     LearningPlanningView(landmark: landmark, planner: planner)
@@ -41,5 +41,5 @@ struct LearningTripView: View {
 }
 
 #Preview {
-    LearningTripView(landmark: .virtual(name: "Test"))
+    LearningTripView(landmark: .virtual(name: "Addition"))
 }
