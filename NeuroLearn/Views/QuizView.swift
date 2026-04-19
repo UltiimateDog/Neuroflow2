@@ -18,14 +18,32 @@ struct QuizView: View {
         VStack {
             switch state {
             case .playing:
-                quizInterface
+                HStack {
+                    Spacer()
+                    
+                    quizInterface
+                    
+                    Spacer()
+                }
             case .results:
-                resultsView
+                HStack {
+                    Spacer()
+                    
+                    resultsView
+                    
+                    Spacer()
+                }
             case .reviewing:
-                reviewMode
+                HStack {
+                    Spacer()
+                    
+                    reviewMode
+                    
+                    Spacer()
+                }
             }
         }
-        .padding()
+        .background(Color.third.opacity(0.4).ignoresSafeArea())
         .onAppear {
             if userAnswers.isEmpty {
                 userAnswers = Array(repeating: nil, count: questions.count)
@@ -33,20 +51,31 @@ struct QuizView: View {
         }
     }
     
-    // --- PART 1: THE QUIZ GAME ---
+    // --- QUIZ GAME ---
     var quizInterface: some View {
         VStack(spacing: 25) {
-            Text("Knowledge Check")
-                .dyslexicStyle(size: 24, weight: .bold)
             
-            ProgressView(value: Double(currentIndex + 1), total: Double(questions.count))
-                .tint(.indigo)
+            Spacer()
+            
+            // Header
+            Text("Knowledge Check")
+                .foregroundStyle(.accent)
+                .dyslexicStyle(size: 28, weight: .bold)
+            
+            // Progress (TEACCH style)
+            QuizProgressIndicator(
+                total: questions.count,
+                current: currentIndex
+            )
+                .padding(.horizontal)
             
             if currentIndex < questions.count {
                 let q = questions[currentIndex]
                 
                 VStack(alignment: .leading, spacing: 20) {
+                    
                     Text(q.question ?? "Loading question...")
+                        .foregroundStyle(.accent)
                         .dyslexicStyle(size: 22, weight: .bold)
                     
                     VStack(spacing: 12) {
@@ -64,40 +93,69 @@ struct QuizView: View {
                         }
                     }
                 }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(Color.white)
+                        .shadow(color: .second, radius: 1)
+                        .shadow(color: .second, radius: 2)
+                )
+                .padding(.horizontal)
                 .transition(.neuroFluid)
                 
                 if showFeedback {
                     VStack(spacing: 16) {
+                        
                         Text(q.rationale ?? "")
+                            .foregroundStyle(.accent)
                             .dyslexicStyle(size: 16)
-                            .teacchCard(color: .indigo.opacity(0.05))
+                            .padding()
+                            .background(Color.third)
+                            .cornerRadius(12)
+                            .padding(.horizontal)
                         
                         Button("Next Question") { nextQuestion() }
                             .buttonStyle(.borderedProminent)
-                            .tint(.indigo)
+                            .tint(.accent)
                             .controlSize(.large)
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            
+            Spacer()
+
         }
     }
 
-    // --- PART 2: THE SCORE SUMMARY ---
+    // --- RESULTS ---
     var resultsView: some View {
         VStack(spacing: 30) {
+            
+            Spacer()
+
+            
             Text("Routine Complete!")
-                .dyslexicStyle(size: 32, weight: .bold)
+                .foregroundStyle(.accent)
+                .dyslexicStyle(size: 30, weight: .bold)
             
             let score = calculateScore()
+            
             Text("\(score) / \(questions.count)")
-                .font(.system(size: 80, weight: .black, design: .rounded))
-                .foregroundStyle(.indigo.gradient)
+                .font(.system(size: 70, weight: .black, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [.second, .accent],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             
             VStack(spacing: 15) {
+                
                 Button("Retake Full Quiz") { resetQuiz() }
                     .buttonStyle(.borderedProminent)
-                    .tint(.indigo)
+                    .tint(.accent)
                     .controlSize(.large)
                 
                 if score < questions.count {
@@ -109,12 +167,27 @@ struct QuizView: View {
                     .controlSize(.large)
                 }
             }
+            
+            Spacer()
+
         }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 22)
+                .fill(Color.white)
+                .shadow(color: .second, radius: 1)
+                .shadow(color: .second, radius: 2)
+        )
+        .padding()
     }
 
-    // --- PART 3: REVIEWING INCORRECT ANSWERS ---
+    // --- REVIEW MODE ---
     var reviewMode: some View {
         VStack(spacing: 20) {
+            
+            Spacer()
+
+            
             let incorrectIndices = getIncorrectIndices()
             
             if currentIndex < incorrectIndices.count {
@@ -122,21 +195,31 @@ struct QuizView: View {
                 let q = questions[qIndex]
                 
                 Text("Reviewing Error \(currentIndex + 1) of \(incorrectIndices.count)")
-                    .dyslexicStyle(weight: .bold)
                     .foregroundStyle(.red)
+                    .dyslexicStyle(weight: .bold)
                 
                 VStack(alignment: .leading, spacing: 15) {
+                    
                     Text(q.question ?? "")
+                        .foregroundStyle(.accent)
                         .dyslexicStyle(size: 20, weight: .bold)
                     
                     Text("Correct Answer: \(q.options?[q.correctAnswerIndex ?? 0] ?? "")")
+                        .foregroundStyle(.green)
                         .dyslexicStyle()
-                        .foregroundColor(.green)
                     
                     Text(q.rationale ?? "")
+                        .foregroundStyle(.accent)
                         .dyslexicStyle(size: 16)
                 }
-                .teacchCard()
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(Color.white)
+                        .shadow(color: .second, radius: 1)
+                        .shadow(color: .second, radius: 2)
+                )
+                .padding(.horizontal)
                 
                 Button("Continue Review") {
                     if currentIndex + 1 < incorrectIndices.count {
@@ -146,12 +229,15 @@ struct QuizView: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.indigo)
+                .tint(.accent)
             }
+            
+            Spacer()
+
         }
     }
 
-    // --- LOGIC HELPERS ---
+    // --- LOGIC ---
     private func handleSelection(_ index: Int) {
         withAnimation(.neuroSpring) {
             selectedIndex = index
@@ -191,7 +277,8 @@ struct QuizView: View {
     }
 }
 
-// --- MISSING COMPONENT: OPTION BUTTON ---
+
+// --- OPTION BUTTON (MATCHED STYLE) ---
 struct OptionButton: View {
     let text: String
     let isSelected: Bool
@@ -203,45 +290,51 @@ struct OptionButton: View {
         Button(action: action) {
             HStack {
                 Text(text)
+                    .foregroundStyle(.accent)
                     .dyslexicStyle(weight: isSelected ? .bold : .medium)
+                
                 Spacer()
+                
                 if showFeedback {
                     Image(systemName: isCorrect ? "checkmark.circle.fill" : (isSelected ? "xmark.circle.fill" : "circle"))
                         .foregroundStyle(isCorrect ? .green : (isSelected ? .red : .secondary))
                 }
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(backgroundColor)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(borderColor, lineWidth: 2)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.white)
+                    .shadow(color: .second, radius: 1)
+                    .shadow(color: .second, radius: 2)
             )
-            .foregroundColor(.primary)
         }
         .disabled(showFeedback)
     }
-    
-    private var backgroundColor: Color {
-        if !showFeedback {
-            return isSelected ? .indigo.opacity(0.1) : Color(.secondarySystemBackground)
-        }
-        if isCorrect { return .green.opacity(0.15) }
-        if isSelected && !isCorrect { return .red.opacity(0.15) }
-        return Color(.secondarySystemBackground)
-    }
-    
-    private var borderColor: Color {
-        if !showFeedback {
-            return isSelected ? .indigo : .clear
-        }
-        if isCorrect { return .green }
-        if isSelected && !isCorrect { return .red }
-        return .clear
-    }
 }
 
-#Preview {
-    QuizView(questions: [])
+struct QuizProgressIndicator: View {
+    let total: Int
+    let current: Int   // zero-based index
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<total, id: \.self) { index in
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(fillColor(for: index))
+                    .frame(height: 8)
+                    .animation(.neuroSpring, value: current)
+            }
+        }
+        .padding(.horizontal)
+    }
+    
+    private func fillColor(for index: Int) -> Color {
+        if index < current {
+            return .accent            // completed
+        } else if index == current {
+            return .second            // current step (slightly different highlight)
+        } else {
+            return Color.third        // remaining
+        }
+    }
 }
-
