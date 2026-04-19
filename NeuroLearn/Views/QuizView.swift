@@ -53,7 +53,7 @@ struct QuizView: View {
                         if let options = q.options {
                             ForEach(Array(options.enumerated()), id: \.offset) { idx, text in
                                 OptionButton(
-                                    text: text ?? "",
+                                    text: text,
                                     isSelected: selectedIndex == idx,
                                     isCorrect: q.correctAnswerIndex == idx,
                                     showFeedback: showFeedback
@@ -240,3 +240,8 @@ struct OptionButton: View {
         return .clear
     }
 }
+
+#Preview {
+    QuizView(questions: [])
+}
+

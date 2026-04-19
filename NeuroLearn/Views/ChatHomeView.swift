@@ -24,3 +24,7 @@ struct ChatHomeView: View {
         }
     }
 }
+
+#Preview {
+    ChatHomeView()
+}
