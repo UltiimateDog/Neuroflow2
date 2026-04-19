@@ -9,10 +9,10 @@ struct ChatHomeView: View {
             VStack(spacing: 25) {
                 Spacer()
                 Image(systemName: "sparkles").font(.system(size: 60)).foregroundStyle(.indigo)
-                Text("Where to?").font(.largeTitle.bold())
+                Text("What are we learning?").font(.largeTitle.bold())
                 
                 HStack {
-                    TextField("Enter any city...", text: $input)
+                    TextField("Search for anything...", text: $input)
                         .padding().background(.ultraThinMaterial).cornerRadius(12)
                     Button { destination = .virtual(name: input) } label: {
                         Image(systemName: "arrow.up.circle.fill").font(.system(size: 40))
@@ -20,7 +20,7 @@ struct ChatHomeView: View {
                 }.padding()
                 Spacer(); Spacer()
             }
-            .navigationDestination(item: $destination) { LandmarkTripView(landmark: $0) }
+            .navigationDestination(item: $destination) { LearningTripView(landmark: $0) }
         }
     }
 }
