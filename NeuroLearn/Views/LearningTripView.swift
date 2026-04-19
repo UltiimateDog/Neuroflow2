@@ -1,9 +1,12 @@
 import SwiftUI
+
 struct LearningTripView: View {
     let landmark: Landmark
+    
     @State private var planner: LearningPlanner?
     @State private var selectedTab = 0
 
+    // MARK: - Body
     var body: some View {
         ZStack {
             if let planner = planner {
@@ -35,4 +38,8 @@ struct LearningTripView: View {
             try? await planner?.generateLearningPlan(for: landmark.name)
         }
     }
+}
+
+#Preview {
+    LearningTripView(landmark: .virtual(name: "Test"))
 }

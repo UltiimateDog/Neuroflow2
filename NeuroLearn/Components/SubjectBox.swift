@@ -8,25 +8,24 @@
 import SwiftUI
 
 struct SubjectBox: View {
-    let title: String
+    let title: AttributedString
     let icon: String
     
     var body: some View {
-        VStack(spacing: 10) {
+        HStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 28, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.accent)
             
             Text(title)
-                .font(.footnote)
                 .fontDesign(.rounded)
-                .fontWeight(.bold)
                 .foregroundStyle(.accent)
                 .multilineTextAlignment(.center)
         }
-        .frame(width: 100, height: 100)
+        .padding(.vertical, 10)
+        .padding(.horizontal)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: 10)
                 .fill(Color.white)
                 .shadow(color: .second, radius: 1)
                 .shadow(color: .second, radius: 2)
