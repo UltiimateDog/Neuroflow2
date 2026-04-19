@@ -36,7 +36,6 @@ struct LearningMediaView: View {
                 Image(systemName: "photo.badge.exclamationmark")
                     .font(.largeTitle)
                     .frame(height: 220)
-                    .card()
             @unknown default:
                 EmptyView()
             }

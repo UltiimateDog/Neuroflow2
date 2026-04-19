@@ -8,36 +8,37 @@ enum QuizState {
 struct QuizView: View {
     let questions: [QuizQuestion].PartiallyGenerated
     
-    // State Tracking
-    @State private var currentIndex = 0
-    @State private var userAnswers: [Int?] = [] // Stores the index user picked for each question
     @State private var state: QuizState = .playing
+    @State private var currentIndex = 0
+    @State private var userAnswers: [Int?] = []
     @State private var selectedIndex: Int?
     @State private var showFeedback = false
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack {
             switch state {
             case .playing:
-                playingView
+                quizInterface
             case .results:
-                resultsSummaryView
+                resultsView
             case .reviewing:
-                reviewModeView
+                reviewMode
             }
         }
         .padding()
         .onAppear {
-            // Initialize answers array if it's empty
             if userAnswers.isEmpty {
                 userAnswers = Array(repeating: nil, count: questions.count)
             }
         }
     }
     
-    // --- 1. THE MAIN QUIZ VIEW ---
-    var playingView: some View {
+    // --- PART 1: THE QUIZ GAME ---
+    var quizInterface: some View {
         VStack(spacing: 25) {
+            Text("Knowledge Check")
+                .dyslexicStyle(size: 24, weight: .bold)
+            
             ProgressView(value: Double(currentIndex + 1), total: Double(questions.count))
                 .tint(.indigo)
             
@@ -45,17 +46,20 @@ struct QuizView: View {
                 let q = questions[currentIndex]
                 
                 VStack(alignment: .leading, spacing: 20) {
-                    Text(q.question ?? "Loading...").font(.title2.bold())
+                    Text(q.question ?? "Loading question...")
+                        .dyslexicStyle(size: 22, weight: .bold)
                     
-                    if let options = q.options {
-                        ForEach(Array(options.enumerated()), id: \.offset) { index, option in
-                            OptionButton(
-                                text: option ?? "",
-                                isSelected: selectedIndex == index,
-                                isCorrect: q.correctAnswerIndex == index,
-                                showFeedback: showFeedback
-                            ) {
-                                selectOption(index)
+                    VStack(spacing: 12) {
+                        if let options = q.options {
+                            ForEach(Array(options.enumerated()), id: \.offset) { idx, text in
+                                OptionButton(
+                                    text: text ?? "",
+                                    isSelected: selectedIndex == idx,
+                                    isCorrect: q.correctAnswerIndex == idx,
+                                    showFeedback: showFeedback
+                                ) {
+                                    handleSelection(idx)
+                                }
                             }
                         }
                     }
@@ -63,73 +67,92 @@ struct QuizView: View {
                 .transition(.neuroFluid)
                 
                 if showFeedback {
-                    feedbackFooter(for: q)
+                    VStack(spacing: 16) {
+                        Text(q.rationale ?? "")
+                            .dyslexicStyle(size: 16)
+                            .teacchCard(color: .indigo.opacity(0.05))
+                        
+                        Button("Next Question") { nextQuestion() }
+                            .buttonStyle(.borderedProminent)
+                            .tint(.indigo)
+                            .controlSize(.large)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
         }
     }
 
-    // --- 2. THE RESULTS SUMMARY ---
-    var resultsSummaryView: some View {
+    // --- PART 2: THE SCORE SUMMARY ---
+    var resultsView: some View {
         VStack(spacing: 30) {
-            Text("Quiz Results").font(.largeTitle.bold())
+            Text("Routine Complete!")
+                .dyslexicStyle(size: 32, weight: .bold)
             
             let score = calculateScore()
             Text("\(score) / \(questions.count)")
-                .font(.system(size: 60, weight: .black))
+                .font(.system(size: 80, weight: .black, design: .rounded))
                 .foregroundStyle(.indigo.gradient)
             
-            VStack(spacing: 12) {
-                Button("Retake Full Test") { resetQuiz() }
+            VStack(spacing: 15) {
+                Button("Retake Full Quiz") { resetQuiz() }
                     .buttonStyle(.borderedProminent)
+                    .tint(.indigo)
+                    .controlSize(.large)
                 
                 if score < questions.count {
-                    Button("Review Incorrect Answers") {
+                    Button("Review Mistakes") {
+                        currentIndex = 0
                         state = .reviewing
-                        currentIndex = 0 // Reset to start of review
                     }
                     .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
             }
         }
-        .transition(.neuroFluid)
     }
 
-    // --- 3. THE REVIEW MODE ---
-    var reviewModeView: some View {
+    // --- PART 3: REVIEWING INCORRECT ANSWERS ---
+    var reviewMode: some View {
         VStack(spacing: 20) {
-            Text("Reviewing Errors").font(.headline).foregroundStyle(.red)
+            let incorrectIndices = getIncorrectIndices()
             
-            // Only show questions where user was wrong
-            let wrongIndices = getIncorrectIndices()
-            if currentIndex < wrongIndices.count {
-                let qIndex = wrongIndices[currentIndex]
+            if currentIndex < incorrectIndices.count {
+                let qIndex = incorrectIndices[currentIndex]
                 let q = questions[qIndex]
                 
-                VStack(alignment: .leading, spacing: 15) {
-                    Text(q.question ?? "").font(.title3.bold())
-                    Text("Your answer: \(q.options?[userAnswers[qIndex] ?? 0] ?? "None")")
-                        .foregroundStyle(.red)
-                    Text("Correct answer: \(q.options?[q.correctAnswerIndex ?? 0] ?? "")")
-                        .foregroundStyle(.green)
-                    
-                    Text(q.rationale ?? "").card()
-                }
+                Text("Reviewing Error \(currentIndex + 1) of \(incorrectIndices.count)")
+                    .dyslexicStyle(weight: .bold)
+                    .foregroundStyle(.red)
                 
-                Button("Next Error") {
-                    if currentIndex + 1 < wrongIndices.count {
+                VStack(alignment: .leading, spacing: 15) {
+                    Text(q.question ?? "")
+                        .dyslexicStyle(size: 20, weight: .bold)
+                    
+                    Text("Correct Answer: \(q.options?[q.correctAnswerIndex ?? 0] ?? "")")
+                        .dyslexicStyle()
+                        .foregroundColor(.green)
+                    
+                    Text(q.rationale ?? "")
+                        .dyslexicStyle(size: 16)
+                }
+                .teacchCard()
+                
+                Button("Continue Review") {
+                    if currentIndex + 1 < incorrectIndices.count {
                         currentIndex += 1
                     } else {
                         state = .results
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(.indigo)
             }
         }
     }
 
-    // Helpers
-    func selectOption(_ index: Int) {
+    // --- LOGIC HELPERS ---
+    private func handleSelection(_ index: Int) {
         withAnimation(.neuroSpring) {
             selectedIndex = index
             userAnswers[currentIndex] = index
@@ -137,7 +160,7 @@ struct QuizView: View {
         }
     }
     
-    func nextStep() {
+    private func nextQuestion() {
         withAnimation(.neuroSpring) {
             if currentIndex + 1 < questions.count {
                 currentIndex += 1
@@ -149,37 +172,71 @@ struct QuizView: View {
         }
     }
     
-    func resetQuiz() {
+    private func resetQuiz() {
         withAnimation(.neuroSpring) {
             currentIndex = 0
             userAnswers = Array(repeating: nil, count: questions.count)
-            state = .playing
             selectedIndex = nil
             showFeedback = false
+            state = .playing
         }
     }
     
-    func calculateScore() -> Int {
-        var score = 0
-        for i in 0..<questions.count {
-            if userAnswers[i] == questions[i].correctAnswerIndex {
-                score += 1
-            }
-        }
-        return score
+    private func calculateScore() -> Int {
+        questions.indices.filter { userAnswers[$0] == questions[$0].correctAnswerIndex }.count
     }
     
-    func getIncorrectIndices() -> [Int] {
+    private func getIncorrectIndices() -> [Int] {
         questions.indices.filter { userAnswers[$0] != questions[$0].correctAnswerIndex }
     }
+}
+
+// --- MISSING COMPONENT: OPTION BUTTON ---
+struct OptionButton: View {
+    let text: String
+    let isSelected: Bool
+    let isCorrect: Bool
+    let showFeedback: Bool
+    let action: () -> Void
     
-    @ViewBuilder
-    func feedbackFooter(for q: QuizQuestion.PartiallyGenerated) -> some View {
-        VStack {
-            Text(q.rationale ?? "").font(.subheadline).padding()
-            Button("Continue") { nextStep() }
-                .buttonStyle(.borderedProminent).tint(.indigo)
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(text)
+                    .dyslexicStyle(weight: isSelected ? .bold : .medium)
+                Spacer()
+                if showFeedback {
+                    Image(systemName: isCorrect ? "checkmark.circle.fill" : (isSelected ? "xmark.circle.fill" : "circle"))
+                        .foregroundStyle(isCorrect ? .green : (isSelected ? .red : .secondary))
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(backgroundColor)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(borderColor, lineWidth: 2)
+            )
+            .foregroundColor(.primary)
         }
-        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .disabled(showFeedback)
+    }
+    
+    private var backgroundColor: Color {
+        if !showFeedback {
+            return isSelected ? .indigo.opacity(0.1) : Color(.secondarySystemBackground)
+        }
+        if isCorrect { return .green.opacity(0.15) }
+        if isSelected && !isCorrect { return .red.opacity(0.15) }
+        return Color(.secondarySystemBackground)
+    }
+    
+    private var borderColor: Color {
+        if !showFeedback {
+            return isSelected ? .indigo : .clear
+        }
+        if isCorrect { return .green }
+        if isSelected && !isCorrect { return .red }
+        return .clear
     }
 }

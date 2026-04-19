@@ -1,86 +1,112 @@
 import FoundationModels
 import SwiftUI
 
+import SwiftUI
+import FoundationModels
+
 struct LearningView: View {
     let plan: LearningPlan.PartiallyGenerated
+    @State private var speech = SpeechManager()
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                // Header Section
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 35) {
+                // 1. Header & Speech Toggle
+                HStack(alignment: .firstTextBaseline) {
                     if let topic = plan.topic {
                         Text(topic)
-                            .font(.largeTitle.bold())
+                            .dyslexicStyle(size: 34, weight: .bold)
                     }
-                    
-                    // Image Section
-                                    if let urlString = plan.mediaURL {
-                                        // This only shows if the AI successfully called the tool
-                                        LearningMediaView(urlString: urlString)
-                                    } else {
-                                        // Placeholder so you know the AI hasn't found an image yet
-                                        RoundedRectangle(cornerRadius: 16)
-                                            .fill(.secondary.opacity(0.1))
-                                            .frame(height: 200)
-                                            .overlay {
-                                                Label("Searching for visual media...", systemImage: "photo")
-                                                    .foregroundStyle(.secondary)
-                                            }
-                                    }
-                    if let overview = plan.simpleOverview {
-                        Text(overview)
-                            .font(.body)
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(12)
+                    Spacer()
+                    Button {
+                        speech.isSpeaking ? speech.stop() : speech.speak(plan.simpleOverview ?? "")
+                    } label: {
+                        Image(systemName: speech.isSpeaking ? "speaker.wave.3.fill" : "speaker.wave.2")
+                            .font(.title2)
+                            .padding(12)
+                            .background(.indigo.opacity(0.1))
+                            .clipShape(Circle())
                     }
                 }
-                
-                // Learning Steps Section
+                .padding(.horizontal)
+
+                // 2. The "Visual Schedule" (Progress Tracker)
                 if let steps = plan.steps {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Step-by-Step Guide").font(.title2.bold())
-                        
-                        ForEach(steps) { step in
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(step.title ?? "").font(.headline)
-                                Text(step.explanation ?? "").font(.body)
-                                
-                                if let takeaway = step.keyTakeaway {
-                                    Text("Key Takeaway: \(takeaway)")
-                                        .font(.caption.bold())
-                                        .foregroundStyle(.indigo)
-                                        .padding(.top, 4)
+                    TEACCHProgressIndicator(count: steps.count)
+                }
+
+                // 3. Structured Content Steps
+                if let steps = plan.steps {
+                    VStack(alignment: .leading, spacing: 24) {
+                        ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                            VStack(alignment: .leading, spacing: 15) {
+                                HStack {
+                                    Text("\(index + 1)")
+                                        .font(.system(.headline, design: .rounded))
+                                        .foregroundColor(.white)
+                                        .frame(width: 30, height: 30)
+                                        .background(.indigo)
+                                        .clipShape(Circle())
+                                    
+                                    Text(step.title ?? "")
+                                        .dyslexicStyle(size: 22, weight: .bold)
                                 }
+                                
+                                Text(step.explanation ?? "")
+                                    .dyslexicStyle()
+                                
+                                // Call to Action / Key Point
+                                HStack {
+                                    Image(systemName: "star.fill").foregroundColor(.orange)
+                                    Text(step.keyTakeaway ?? "").dyslexicStyle(size: 16, weight: .bold)
+                                }
+                                .padding()
+                                .background(.orange.opacity(0.1))
+                                .cornerRadius(12)
+                                
+                                Button("Listen to Step \(index + 1)") {
+                                    speech.speak(step.explanation ?? "")
+                                }
+                                .font(.system(.subheadline, design: .rounded).bold())
+                                .foregroundColor(.indigo)
                             }
-                            .card() // Using the professional card style from Utils
+                            .teacchCard()
                             .transition(.neuroFluid)
                         }
                     }
                 }
-
-                // --- NEW: Flashcards Section ---
+                
+                // 4. Flashcards (Visual Review)
                 if let flashcards = plan.flashcards {
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("Review Flashcards").font(.title2.bold())
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 20) {
-                                ForEach(flashcards) { card in
-                                    FlashcardView(card: card)
-                                        .transition(.neuroFluid)
-                                }
+                    Text("Review Tools").dyslexicStyle(size: 24, weight: .bold).padding(.horizontal)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 20) {
+                            ForEach(flashcards) { card in
+                                FlashcardView(card: card)
                             }
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 5)
                         }
+                        .padding(.horizontal)
                     }
                 }
             }
-            .padding()
+            .padding(.vertical)
         }
-        .animation(.neuroSpring, value: plan) // Professional spring from Utils
+        .animation(.neuroSpring, value: plan)
+    }
+}
+
+// TEACCH Element: Tells the user exactly how much work is left
+struct TEACCHProgressIndicator: View {
+    let count: Int
+    var body: some View {
+        HStack {
+            ForEach(0..<count, id: \.self) { _ in
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(.indigo.opacity(0.3))
+                    .frame(height: 8)
+            }
+        }
+        .padding(.horizontal)
     }
 }
 

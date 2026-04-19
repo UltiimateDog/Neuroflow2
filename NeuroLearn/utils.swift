@@ -14,39 +14,34 @@ extension Animation {
     }
 }
 
+
+extension View {
+    /// The structural boundary for TEACCH-aligned information chunks
+    func teacchCard(color: Color = Color(.secondarySystemBackground)) -> some View {
+        self.padding(20)
+            .background(color)
+            .cornerRadius(20)
+            .padding(.horizontal)
+    }
+}
+
 extension AnyTransition {
-    /// A high-quality, professional transition that works on all iOS versions.
-    /// This uses scale, opacity, and movement to create a 'foundational' feel.
+    /// The signature fluid transition for NeuroLearn
     static var neuroFluid: AnyTransition {
         .asymmetric(
-            insertion: AnyTransition.opacity
+            insertion: .opacity
                 .combined(with: .scale(scale: 0.92))
-                .combined(with: .move(edge: Edge.bottom)),
-            removal: AnyTransition.opacity
-                .combined(with: .scale(scale: 1.05))
+                .combined(with: .move(edge: .bottom)),
+            removal: .opacity.combined(with: .scale(scale: 1.05))
         )
     }
 }
 
-struct ReadabilityRoundedRectangle: View {
-    var body: some View {
-        RoundedRectangle(cornerRadius: 16.0)
-            .fill(
-                LinearGradient(
-                    colors: [.black.opacity(0.8), .clear],
-                    startPoint: .bottom,
-                    endPoint: .center
-                )
-            )
-    }
-}
-
-extension View {
-    /// A professional card modifier for educational content
-    func card() -> some View {
-        self.padding()
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+extension Text {
+    /// Dyslexia-friendly text style
+    func dyslexicStyle(size: CGFloat = 18, weight: Font.Weight = .medium) -> some View {
+        self.font(.system(size: size, weight: weight, design: .rounded))
+            .lineSpacing(8) // Increased leading is critical for dyslexia
+            .kerning(0.5)   // Slight letter spacing improvement
     }
 }

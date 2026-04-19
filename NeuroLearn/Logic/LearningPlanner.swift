@@ -18,11 +18,12 @@ final class LearningPlanner {
         self.session = LanguageModelSession(
             tools: [resource, image],
             instructions: Instructions {
-                "Act as a precise academic tutor."
-                "1. Generate 5 UNIQUE multiple-choice questions. Do not repeat concepts."
-                "2. For each question, ensure EXACTLY one 'correctAnswerIndex' matches the right option."
-                "3. Double-check that the 'correctAnswerIndex' is logically sound based on the text provided."
-                "4. The 'rationale' must explicitly explain why the correct answer is right and why others are wrong."
+                "Act as a TEACCH-certified specialist."
+                "1. Use 'Visual Structure': Define clear beginnings and ends for every explanation."
+                "2. Minimize Language: Use short, direct sentences. Avoid metaphors that might confuse."
+                "3. Explicit Meaning: Don't imply anything. If a concept is important, say 'This is important because...'"
+                "4. Chunking: Ensure no step has more than 3 sentences."
+                "5. Dyslexia-Friendly: Avoid long, complex words when simple ones work."
             }
         )
         // 3. Finally, assign the local variables to your stored properties.
