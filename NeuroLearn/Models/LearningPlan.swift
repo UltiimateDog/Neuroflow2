@@ -1,9 +1,14 @@
+//
+//  LearningPlan.swift
+//  NeuroLearn
+//
+
 import Foundation
 import FoundationModels
 
-
 @Generable
-struct LearningPlan: Equatable {
+struct LearningPlan: Equatable, Codable, Identifiable { // Added Codable and Identifiable
+    var id = UUID() // Added ID for lists
     let topic: String
     let simpleOverview: String
     let rationale: String
@@ -11,20 +16,20 @@ struct LearningPlan: Equatable {
     let flashcards: [Flashcard]
     let mediaURL: String?
     let chartData: [ChartElement]?
-    // NEW: The quiz questions for the second tab
     let quizQuestions: [QuizQuestion]
 }
 
 @Generable
-struct QuizQuestion: Equatable, Identifiable {
+struct QuizQuestion: Equatable, Identifiable, Codable { // Added Codable
     var id: String { question }
     let question: String
     let options: [String]
     let correctAnswerIndex: Int
-    let rationale: String // Explain why the answer is correct
+    let rationale: String
 }
+
 @Generable
-struct LearningStep: Equatable, Identifiable {
+struct LearningStep: Equatable, Identifiable, Codable { // Added Codable
     var id: String { title }
     let title: String
     let explanation: String
@@ -33,14 +38,14 @@ struct LearningStep: Equatable, Identifiable {
 }
 
 @Generable
-struct Flashcard: Equatable, Identifiable {
+struct Flashcard: Equatable, Identifiable, Codable { // Added Codable
     var id: String { question }
     let question: String
     let answer: String
 }
 
 @Generable
-struct ChartElement: Equatable, Identifiable {
+struct ChartElement: Equatable, Identifiable, Codable { // Added Codable
     var id: String { label }
     let label: String
     let value: Double

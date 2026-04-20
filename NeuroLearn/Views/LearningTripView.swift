@@ -33,13 +33,26 @@ struct LearningTripView: View {
             }
         }
         .animation(.neuroSpring, value: planner?.plan != nil)
-        .task {
-            planner = LearningPlanner(subject: landmark.name)
-            try? await planner?.generateLearningPlan(for: landmark.name)
-        }
+                .task {
+                    planner = LearningPlanner(subject: landmark.name)
+                    try? await planner?.generateLearningPlan(for: landmark.name)
+                    
+                    // Save only when a fully generated plan is available
+                    if let partial = planner?.plan {
+                        // If there's a way to obtain a finalized plan from the partial, prefer that.
+                        if let fullPlan = (partial as? LearningPlan) {
+                            HistoryManager.shared.savePlan(fullPlan)
+                        } else if let fullPlan = (partial as? AnyObject)?.value(forKey: "finalized") as? LearningPlan {
+                            HistoryManager.shared.savePlan(fullPlan)
+                        }
+                    }
+                }
     }
 }
+
+
 
 #Preview {
     LearningTripView(landmark: .virtual(name: "Addition"))
 }
+
