@@ -57,8 +57,55 @@ struct TrackView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        TrackView(track: .basicMath)
+
+//
+//  TrackHomeView.swift
+//  NeuroLearn
+//
+
+import SwiftUI
+
+struct TrackHomeView: View {
+    let tracks = PreconfiguredTrack.allTracks
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    
+                    // Header Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Learning Tracks")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(.accent)
+                        
+                        Text("Choose a subject to start learning step-by-step.")
+                            .foregroundStyle(.accent)
+                            .dyslexicStyle(size: 16, weight: .regular)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
+                    
+                    // List of Tracks
+                    VStack(spacing: 16) {
+                        ForEach(tracks) { track in
+                            NavigationLink(destination: TrackView(track: track)) {
+                                TrackCardView(track: track)
+                            }
+                            // Prevents the NavigationLink from overriding text colors
+                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.bottom, 30)
+                }
+            }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            // Ensures the navigation bar is styled nicely when pushed
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
+}
+
+#Preview {
+    TrackHomeView()
 }
