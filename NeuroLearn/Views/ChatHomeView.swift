@@ -24,6 +24,8 @@ struct ChatHomeView: View {
             }
             .navigationDestination(item: $destination) {
                 LearningTripView(landmark: $0)
+                    .toolbar(.hidden, for: .tabBar)
+                    
             }
             .background(Color.third.opacity(0.4).ignoresSafeArea())
         }
@@ -33,9 +35,9 @@ struct ChatHomeView: View {
     private func header() -> some View {
         HStack(spacing: 10) {
             
-            historyButton()
+            //historyButton()
             
-            Spacer()
+            //Spacer()
             
             Image(systemName: "brain.fill")
                 .resizable()

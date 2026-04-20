@@ -34,15 +34,16 @@ struct HistoryHomeView: View {
                     .padding(.vertical, 8)
                 }
             }
-            .navigationTitle("Learning History")
             .overlay {
                 if history.savedPlans.isEmpty {
                     Text("No past learning trips yet!\nAsk a question to start.")
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(.second)
                         
                 }
             }
+            .background(Color.third.opacity(0.4).ignoresSafeArea())
+
         }
     }
 }

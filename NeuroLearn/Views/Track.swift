@@ -99,7 +99,7 @@ struct TrackHomeView: View {
                     .padding(.bottom, 30)
                 }
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .background(Color.third.opacity(0.4).ignoresSafeArea())
             // Ensures the navigation bar is styled nicely when pushed
             .navigationBarTitleDisplayMode(.inline)
         }

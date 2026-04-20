@@ -11,6 +11,8 @@ struct LandingView: View {
     
     @State private var enterApp = false
     
+    @State private var selectedTab = 1
+    
     var body: some View {
         if !enterApp {
             VStack(spacing: 45) {
@@ -104,8 +106,27 @@ struct LandingView: View {
             }
             .background(Color.third.opacity(0.4).ignoresSafeArea())
         } else {
-            ChatHomeView()
-                .transition(.opacity.combined(with: .scale))
+            TabView(selection: $selectedTab) {
+                
+                TrackHomeView()
+                    .tabItem {
+                        Label("Tracks", systemImage: "target")
+                    }
+                    .tag(0)
+                
+                ChatHomeView()
+                    .tabItem {
+                        Label("Chat", systemImage: "bubble.left.and.text.bubble.right")
+                    }
+                    .tag(1) // this will be the default
+                
+                HistoryHomeView()
+                    .tabItem {
+                        Label("History", systemImage: "book.fill")
+                    }
+                    .tag(2)
+            }
+            .transition(.move(edge: .trailing))
         }
         
     }

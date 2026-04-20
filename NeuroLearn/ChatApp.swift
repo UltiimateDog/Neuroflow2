@@ -14,7 +14,7 @@ struct ChatApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ChatHomeView()
+            LandingView()
         }
     }
 }
